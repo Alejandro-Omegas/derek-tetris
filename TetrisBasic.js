@@ -26,6 +26,8 @@ let currTetrominoColor
 let gameBoardArray = [...Array(gBArrayHeight)].map(e => Array(gBArrayWidth).fill(0))
 let stoppedShapeArray = [...Array(gBArrayHeight)].map(e => Array(gBArrayWidth).fill(0))
 let direction
+let gameSpeed = 1000
+let gameInterval
 //#endregion
 
 //#region Classes
@@ -42,11 +44,15 @@ document.addEventListener('DOMContentLoaded', SetupCanvas)
 //#endregion
 
 //#region Functions
-window.setInterval(function () {
-    if (WinOrLose != "Game Over") {
-        MoveTetrominoDown()
+function StartGame() {
+    gameInterval = setInterval(MoveDown, gameSpeed);
+}
+
+function MoveDown() {
+    if (WinOrLose !== "Game Over") {
+        MoveTetrominoDown();
     }
-}, 1000)
+}
 
 function CreateCoordArray() {
     let i = 0, j = 0
@@ -107,10 +113,15 @@ function SetupCanvas() {
 
     CreateCoordArray()
     DrawTetromino()
+
+    StartGame()
 }
 
 function DrawTetromino() {
     if (!currTetromino) {
+        startX = STARTX
+        startY = STARTY
+        direction = DIRECTION.IDLE
         CreateTetromino()
         return
     }
@@ -134,7 +145,10 @@ function DrawTetromino() {
 
 function DeleteTetromino() {
     if (!currTetromino) {
-        DrawTetromino()
+        startX = STARTX
+        startY = STARTY
+        direction = DIRECTION.IDLE
+        CreateTetromino()
         return
     }
 
@@ -216,6 +230,7 @@ function CheckVerticalCollision() {
     if (!currTetromino) {
         startX = STARTX
         startY = STARTY
+        direction = DIRECTION.IDLE
         CreateTetromino()
         return true
     }
@@ -288,6 +303,7 @@ function CheckHorizontalCollision() {
     if (!currTetromino) {
         startX = STARTX
         startY = STARTY
+        direction = DIRECTION.IDLE
         CreateTetromino()
         return true
     }
@@ -325,6 +341,7 @@ function HittingWall() {
     if (!currTetromino) {
         startX = STARTX
         startY = STARTY
+        direction = DIRECTION.IDLE
         CreateTetromino()
         return true
     }
@@ -378,12 +395,26 @@ function CheckForCompletedRows() {
 
     if (rowsToDelete > 0) {
         score += 10
+        if(score % 10 == 0) {
+            level++ //leves up every 100 points
+            ctx.fillStyle = 'white'
+            ctx.fillRect(300, 171, 161, 24)
+            ctx.fillStyle = 'black'
+            ctx.fillText(level.toString(), 310, 190)
+            ChangeSpeed(gameSpeed - score) //decreases interval speed to -0.1 seconds per level up
+        }
         ctx.fillStyle = 'white'
         ctx.fillRect(310, 109, 140, 19)
         ctx.fillStyle = 'black'
         ctx.fillText(score.toString(), 310, 127)
         MoveAllRowsDown(rowsToDelete, startOfDeletion)
     }
+}
+
+function ChangeSpeed(newSpeed) {
+    clearInterval(gameInterval)
+    gameSpeed = newSpeed
+    gameInterval = setInterval(MoveDown, gameSpeed)
 }
 
 /**
@@ -430,6 +461,7 @@ function RotateTetromino() {
     if (!currTetromino) {
         startX = STARTX
         startY = STARTY
+        direction = DIRECTION.IDLE
         CreateTetromino()
         return
     }
